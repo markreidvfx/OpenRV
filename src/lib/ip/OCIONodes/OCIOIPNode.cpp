@@ -185,6 +185,12 @@ OCIOIPNode::updateConfig()
     //  m_configText->front() = s.str();
     //
 
+    unsigned int major_version = m_state->config->getMajorVersion();
+    if (major_version > 1)
+    {
+        std::cerr << "WARNING: OCIO config version " << major_version << " not fully supported" << std::endl;
+    }
+
     m_configDescription->front() = m_state->config->getDescription();
     m_configWorkingDir->front()  = m_state->config->getWorkingDir();
 
