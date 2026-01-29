@@ -375,16 +375,26 @@ namespace TwkMovie
         {
             if (nearby)
             {
+                if (m_frameMap.empty())
+                {
+                    TWK_THROW_EXC_STREAM("MovieFB internal error: no frames in map for " << m_imagePattern);
+                }
+
                 CompareFrameFilePair cffp;
                 FrameMap::const_iterator n =
                     lower_bound(m_frameMap.begin(), m_frameMap.end(), FrameMap::value_type(frame, FrameFile("")), cffp);
 
-                //
-                //  n is the smallest frame > target frame, or there are
-                //  no frames > target frame, so use the last frame we have.
-                //
-                if (n != m_frameMap.begin())
+                // n is first element >= frame OR end() if none
+                if (n == m_frameMap.end())
+                {
+                    // no element >= frame, use last element
+                    n = std::prev(m_frameMap.end());
+                }
+                else if (n != m_frameMap.begin())
+                {
+                    // there is an element >= frame and a smaller one; pick closest <=
                     n--;
+                }
 
                 frame = n->first;
                 filename = n->second.fileName;
