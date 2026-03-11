@@ -47,6 +47,9 @@
 #include <stl_ext/string_algo.h>
 
 #include <QtWidgets/QMessageBox>
+#ifdef PLATFORM_LINUX
+#include <QtWidgets/QProxyStyle>
+#endif
 #include <QScreen>
 
 #ifdef PLATFORM_LINUX
@@ -153,7 +156,24 @@ namespace Rv
         DB("RvDocument constructed");
 
 #if !defined(PLATFORM_DARWIN)
-        setMenuBar(new QMenuBar(0));
+        QMenuBar* menuBar = new QMenuBar(this);
+#ifdef PLATFORM_LINUX
+        class NoAltNavStyle : public QProxyStyle
+        {
+        public:
+            NoAltNavStyle() : QProxyStyle(static_cast<QStyle*>(nullptr)) {}
+            int styleHint(StyleHint hint, const QStyleOption* option = nullptr,
+                          const QWidget* widget = nullptr,
+                          QStyleHintReturn* returnData = nullptr) const override
+            {
+                if (hint == QStyle::SH_MenuBar_AltKeyNavigation)
+                    return 0;
+                return QProxyStyle::styleHint(hint, option, widget, returnData);
+            }
+        };
+        menuBar->setStyle(new NoAltNavStyle());
+#endif
+        setMenuBar(menuBar);
 #endif
 
         const TwkApp::Application::Documents& docs = TwkApp::App()->documents();
